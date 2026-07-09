@@ -38,7 +38,11 @@ DEFAULTS = {
     "site_subtitle": "Docs & guides",  # small line under the brand
     "content_dir": "content",        # folder (next to this script) holding your Markdown
     "page_word": "page",             # noun used for the per-section counts ("3 pages")
+    "host": "127.0.0.1",             # bind address (use "0.0.0.0" for LAN/containers)
     "port": 8000,                    # default port (a CLI arg still overrides it)
+    "base_path": "",                 # mount under a sub-path, e.g. "/docs", when behind a proxy
+    "accent": "#FF671D",             # theme accent color (hex) — re-skins the whole UI
+    "home": "",                      # default page: a path or title; blank = auto (intro/overview)
     "menu": {},                      # optional per-path label/order overrides (see below)
 }
 
@@ -57,11 +61,36 @@ def load_config():
     return cfg
 
 
+def norm_base(bp):
+    """Normalize a base path: '' | 'docs' | '/docs/' -> '' | '/docs'."""
+    bp = (bp or "").strip().strip("/")
+    return "/" + bp if bp else ""
+
+
+def _hex_rgb(h):
+    h = h.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    try:
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (255, 103, 29)  # fall back to the default orange
+
+
+def _lighten(rgb, f):
+    return tuple(round(c + (255 - c) * f) for c in rgb)
+
+
 CONFIG = load_config()
 SITE_TITLE = CONFIG["site_title"]
 SITE_SUBTITLE = CONFIG["site_subtitle"]
 CONTENT_DIR = CONFIG["content_dir"]
 PAGE_WORD = CONFIG["page_word"]
+BASE_PATH = norm_base(CONFIG["base_path"])
+_accent_rgb = _hex_rgb(CONFIG["accent"])
+ACCENT = CONFIG["accent"]
+ACCENT_RGB = "{}, {}, {}".format(*_accent_rgb)
+ACCENT_HI = "#{:02x}{:02x}{:02x}".format(*_lighten(_accent_rgb, 0.45))
 # Optional menu overrides: { "content/2. Guides": {"label": "User Guides", "order": 5}, ... }
 # keyed by the item's path (relative to this script, forward slashes). Both
 # fields optional; anything omitted falls back to prefix/natural-sort behavior.
@@ -185,26 +214,29 @@ SHELL = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__SITE_TITLE__</title>
-<link rel="stylesheet" href="/_app/github-dark.min.css">
+<link rel="stylesheet" href="__BASE__/_app/github-dark.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="/_app/marked.min.js"></script>
-<script src="/_app/highlight.min.js"></script>
+<script src="__BASE__/_app/marked.min.js"></script>
+<script src="__BASE__/_app/highlight.min.js"></script>
 <style>
   :root {
-    /* Cohesive dark palette. Change --accent to re-skin the whole site. */
+    /* Cohesive dark palette. The accent (and its derived tints) come from
+       config.json — everything below reads from --accent-rgb / --accent-hi. */
     --bg: #0b0d12;
     --bg-elev: #14171d;
     --bg-hover: #1b1f27;
-    --bg-active: rgba(255,103,29,.13);   /* orange tint — matches the accent */
     --border: #262b34;
     --border-2: #343b47;
     --text: #f1f3f6;
     --muted: #aab2bf;
     --text-dim: #79828f;
-    --accent: #FF671D;      /* accent — swap for your brand color */
-    --accent-soft: rgba(255,103,29,.10);
+    --accent: __ACCENT__;               /* set in config.json */
+    --accent-rgb: __ACCENT_RGB__;       /* derived: "r, g, b" */
+    --accent-hi: __ACCENT_HI__;         /* derived: lightened accent for text */
+    --accent-soft: rgba(var(--accent-rgb), .10);
+    --bg-active: rgba(var(--accent-rgb), .13);
     --accent-2: #6ea8fe;
   }
   * { box-sizing: border-box; }
@@ -535,7 +567,8 @@ const scroll = document.getElementById('scroll');
 let flatOrder = [];   // ordered list of {path,title,crumb,leaf}
 let currentIdx = -1;
 
-function encPath(p) { return '/' + p.split('/').map(encodeURIComponent).join('/'); }
+const BASE = "__BASE__";
+function encPath(p) { return BASE + '/' + p.split('/').map(encodeURIComponent).join('/'); }
 
 function setActive(entry) {
   document.querySelectorAll('.leaf.active, .foot-link.active').forEach(x => x.classList.remove('active'));
@@ -619,7 +652,7 @@ function go(delta) {
   const entry = flatOrder[i];
   // expand ancestors so the active item is visible
   let el = entry.leaf;
-  while (el) { el.classList && el.classList.remove('collapsed'); el = el.parentElement && el.parentElement.closest('.session,.module'); }
+  while (el) { el.classList && el.classList.remove('collapsed'); el = el.parentElement && el.parentElement.closest('.section,.group'); }
   entry.leaf.scrollIntoView({block: 'nearest'});
   loadNote(entry);
 }
@@ -672,8 +705,12 @@ function render(tree) {
   });
   updatePrevNext();
 
-  // Landing page: prefer an intro/overview/readme page, else the first page.
-  const home = flatOrder.find(e => /introduction|overview|welcome|readme|index|getting started/i.test(e.title))
+  // Landing page: the configured "home" (matched by path or title) wins;
+  // otherwise prefer an intro/overview/readme page, else the first page.
+  const wanted = "__HOME__".trim().toLowerCase();
+  const home = (wanted && flatOrder.find(e =>
+                  e.path.toLowerCase() === wanted || e.title.toLowerCase() === wanted))
+            || flatOrder.find(e => /introduction|overview|welcome|readme|index|getting started/i.test(e.title))
             || flatOrder[0];
   if (home) loadNote(home);
 }
@@ -731,18 +768,28 @@ content.addEventListener('click', (e) => {
   }
 });
 
-fetch('/api/tree').then(r => r.json()).then(render);
+fetch(BASE + '/api/tree').then(r => r.json()).then(render);
 </script>
 </body>
 </html>
 """
 
-# Bake the config values into the shell (the shell is a raw string full of
-# CSS braces, so we use simple token replacement rather than str.format).
+# Bake config into the shell (a raw string full of CSS braces, so we use token
+# replacement rather than str.format). Accent tints reference --accent-rgb, so
+# a single accent value re-skins every orange in the UI.
 SHELL = (SHELL
          .replace("__SITE_TITLE__", SITE_TITLE)
          .replace("__SITE_SUBTITLE__", SITE_SUBTITLE)
-         .replace("__PAGE_WORD__", PAGE_WORD))
+         .replace("__PAGE_WORD__", PAGE_WORD)
+         .replace("__BASE__", BASE_PATH)
+         .replace("__HOME__", str(CONFIG["home"]).replace('"', '\\"'))
+         .replace("__ACCENT_RGB__", ACCENT_RGB)   # before __ACCENT__ (prefix-safe anyway)
+         .replace("__ACCENT_HI__", ACCENT_HI)
+         .replace("__ACCENT__", ACCENT)
+         # remaining hardcoded orange literals -> accent-derived
+         .replace("#ff8a3d", "var(--accent-hi)")
+         .replace("#ffb27a", "var(--accent-hi)")
+         .replace("rgba(255,103,29,", "rgba(var(--accent-rgb),"))
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -751,6 +798,12 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
+        # When mounted under a base path (behind a proxy that forwards it),
+        # strip the prefix before routing / serving files.
+        if BASE_PATH and (path == BASE_PATH or path.startswith(BASE_PATH + "/")):
+            path = path[len(BASE_PATH):] or "/"
+            self.path = path + (("?" + urlparse(self.path).query)
+                                if urlparse(self.path).query else "")
         if path in ("/", "/index.html"):
             return self._send(SHELL.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/api/tree":
@@ -778,10 +831,13 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
+    host = CONFIG["host"]
     port = int(sys.argv[1]) if len(sys.argv) > 1 else int(CONFIG["port"])
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"{SITE_TITLE} → http://localhost:{port}/")
-    print(f"Serving from: {ROOT}")
+    httpd = ThreadingHTTPServer((host, port), Handler)
+    shown = "localhost" if host in ("127.0.0.1", "0.0.0.0", "") else host
+    print(f"{SITE_TITLE} → http://{shown}:{port}{BASE_PATH or ''}/")
+    print(f"Serving from: {ROOT}  (bind {host}:{port}"
+          + (f", base path {BASE_PATH}" if BASE_PATH else "") + ")")
     print("Press Ctrl+C to stop.")
     try:
         httpd.serve_forever()

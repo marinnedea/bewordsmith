@@ -8,7 +8,11 @@ All settings live in a single **`config.json`** file next to `server.py`:
   "site_subtitle": "Docs & guides",
   "content_dir": "content",
   "page_word": "page",
-  "port": 8000
+  "host": "127.0.0.1",
+  "port": 8000,
+  "base_path": "",
+  "accent": "#FF671D",
+  "home": ""
 }
 ```
 
@@ -18,17 +22,45 @@ All settings live in a single **`config.json`** file next to `server.py`:
 | `site_subtitle` | `Docs & guides` | Small line under the brand |
 | `content_dir` | `content` | Folder holding your Markdown |
 | `page_word` | `page` | Noun used in the menu counts |
+| `host` | `127.0.0.1` | Bind address. Use `0.0.0.0` for LAN / containers |
 | `port` | `8000` | Port to serve on (a CLI arg like `server.py 8137` overrides it) |
+| `base_path` | `""` | Mount under a sub-path (see below) |
+| `accent` | `#FF671D` | Theme color (hex). Re-skins the whole UI |
+| `home` | `""` | Default landing page — a page path or title; blank = auto |
 
 Any key you omit falls back to its built-in default, so a partial (or missing) `config.json` still works.
 
 ## Theming
 
-The palette is a set of CSS variables at the top of the shell styles. The most useful one:
+Set `accent` to any hex color and the whole UI re-skins — the lighter text tint
+and translucent hover/active fills are derived from it automatically:
 
-```css
---accent: #FF671D;   /* change this to re-skin the whole site */
+```json
+{ "accent": "#3b82f6" }
 ```
+
+## Serving behind nginx / Apache
+
+For a subdomain root (e.g. `docs.example.com`), just proxy to the app and set
+`host` as needed:
+
+```nginx
+location / { proxy_pass http://127.0.0.1:8000; }
+```
+
+To mount under a **sub-path** (e.g. `example.com/docs/`), set `base_path` and
+forward the prefix (note: no trailing slash on `proxy_pass`, so the prefix is
+kept):
+
+```json
+{ "base_path": "/docs" }
+```
+```nginx
+location /docs/ { proxy_pass http://127.0.0.1:8000; }
+```
+
+`base_path` prefixes every generated URL and the server strips it from incoming
+requests, so assets, the page tree, and images all resolve correctly.
 
 ## Folder rules
 

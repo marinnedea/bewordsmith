@@ -27,7 +27,7 @@ server.py     the whole app
 
 ## Customize
 
-Edit `config.json`:
+Everything is in `config.json`:
 
 ```json
 {
@@ -35,11 +35,20 @@ Edit `config.json`:
   "site_subtitle": "Docs & guides",
   "content_dir": "content",
   "page_word": "page",
-  "port": 8000
+  "host": "127.0.0.1",
+  "port": 8000,
+  "base_path": "",
+  "accent": "#FF671D",
+  "home": "",
+  "menu": {}
 }
 ```
 
-A port passed on the command line (`python3 server.py 8137`) overrides
-`config.json`. To re-skin, change the `--accent` CSS variable near the top of
-the shell styles in `server.py`. Open the in-app **Authoring guide** (bottom of
-the sidebar) for formatting help.
+- `accent` re-skins the whole UI from one hex color.
+- `host`/`port` set the bind address (CLI port arg overrides `port`).
+- `base_path` mounts the site under a sub-path behind a reverse proxy.
+- `home` picks the landing page; `menu` overrides labels/order per path.
+
+Any omitted key falls back to a built-in default. Open the in-app **Authoring
+guide** (bottom of the sidebar), or **Reference → Configuration**, for details
+including nginx/Apache examples.
