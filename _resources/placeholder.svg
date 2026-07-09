@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="Poppins, sans-serif">
+  <rect width="800" height="360" rx="14" fill="#14171d" stroke="#262b34"/>
+  <rect x="1" y="1" width="798" height="358" rx="14" fill="url(#g)" opacity="0.5"/>
+  <defs><radialGradient id="g" cx="15%" cy="120%" r="90%">
+    <stop offset="0%" stop-color="#FF671D" stop-opacity="0.35"/>
+    <stop offset="60%" stop-color="#FF671D" stop-opacity="0"/></radialGradient></defs>
+  <text x="400" y="180" fill="#aab2bf" font-size="26" text-anchor="middle" font-weight="600">Placeholder image</text>
+  <text x="400" y="214" fill="#79828f" font-size="15" text-anchor="middle">800 × 360 — replace me in _resources/</text>
+</svg>

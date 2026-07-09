@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 190" font-family="Poppins, sans-serif">
+  <rect width="820" height="190" rx="14" fill="#14171d" stroke="#262b34"/>
+  <g text-anchor="middle" font-size="15" font-weight="600">
+    <rect x="40"  y="70" width="180" height="52" rx="10" fill="#1b1f27" stroke="#343b47"/>
+    <text x="130" y="102" fill="#f1f3f6">Write .md</text>
+    <rect x="320" y="70" width="180" height="52" rx="10" fill="#1b1f27" stroke="#FF671D"/>
+    <text x="410" y="102" fill="#ffb27a">Refresh</text>
+    <rect x="600" y="70" width="180" height="52" rx="10" fill="#1b1f27" stroke="#343b47"/>
+    <text x="690" y="102" fill="#f1f3f6">Appears in menu</text>
+    <path d="M220 96 H320" stroke="#79828f" stroke-width="2" marker-end="url(#a)"/>
+    <path d="M500 96 H600" stroke="#79828f" stroke-width="2" marker-end="url(#a)"/>
+  </g>
+  <defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+    <path d="M0 0 L7 3 L0 6 z" fill="#79828f"/></marker></defs>
+</svg>
