@@ -1,28 +1,45 @@
-# BeWordsmith
+# BeWordSmith
 
 A tiny, dependency-free knowledge-base / how-to site. Serves a folder of
 Markdown files as a dark-themed site with an auto-generated left menu and a
-gradient hero header on every page. Standard-library Python only; marked.js +
-highlight.js are vendored locally (works offline).
+gradient hero header on every page. marked.js + highlight.js are vendored
+locally (works offline).
 
 Order sections/pages by prefixing folder or file names with a number
 (`1. Intro`, `2. Setup`); the number sets the order and is hidden from the menu label.
 
-## Run
+## Run it — two ways (pick one)
+
+**Python** — a local dev server, no dependencies beyond Python 3:
 
 ```bash
 python3 server.py            # http://localhost:8000
 python3 server.py 8137       # custom port
 ```
 
+**PHP** — for Apache / nginx / shared (cPanel) hosting, where PHP is available
+by default and no long-running process is allowed:
+
+```bash
+# local test:
+php -S localhost:8000 index.php
+# on shared hosting: just upload the folder — index.php is the entry point.
+```
+
+Both backends read the same `config.json` and `content/`, and render the exact
+same UI from the shared `_app/shell.html` template.
+
 ## Structure
 
 ```
-config.json   all settings (title, subtitle, content dir, page word, port)
-_app/         vendored marked.js + highlight.js + code theme
-_resources/   images (referenced from pages as ../../../_resources/…)
-content/      your Markdown — folders become Section → Group → Page
-server.py     the whole app
+config.json      all settings (title, accent, host, port, base_path, home, menu)
+index.php        PHP backend (Apache/nginx/shared hosting)
+server.py        Python backend (local dev server)
+.htaccess        Apache config for shared hosting
+_app/shell.html  the shared UI template (both backends fill it in)
+_app/            vendored marked.js + highlight.js + code theme
+_resources/      images (referenced from pages as ../../../_resources/…)
+content/         your Markdown — folders become Section → Group → Page
 ```
 
 ## Customize

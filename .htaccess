@@ -1,0 +1,29 @@
+# BeWordSmith — Apache config for shared / cPanel hosting.
+# Static files (Markdown, images, _app assets) are served directly; index.php
+# handles "/" and "?api=tree". No rewrites needed — URLs are relative.
+
+DirectoryIndex index.php
+
+# Serve Markdown as text so browsers/fetch treat it correctly.
+AddType text/markdown .md
+
+# Keep server-side-only files private (config + the Python server + the
+# raw UI template, which index.php reads on the server).
+<IfModule mod_authz_core.c>            # Apache 2.4+
+  <FilesMatch "(^config\.json$|\.py$)">
+    Require all denied
+  </FilesMatch>
+  <Files "shell.html">
+    Require all denied
+  </Files>
+</IfModule>
+<IfModule !mod_authz_core.c>           # Apache 2.2 fallback
+  <FilesMatch "(^config\.json$|\.py$)">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+  <Files "shell.html">
+    Order allow,deny
+    Deny from all
+  </Files>
+</IfModule>
