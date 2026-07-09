@@ -25,16 +25,43 @@ import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
-# ------------------------------------------------------------------ config ---
-SITE_TITLE = "BeWordSmith"            # shown in the sidebar brand + tab title
-SITE_SUBTITLE = "Docs & guides"       # small line under the brand
-CONTENT_DIR = "content"               # folder (next to this script) holding your Markdown
-PAGE_WORD = "page"                    # noun used for the per-section counts ("3 pages")
-# -----------------------------------------------------------------------------
-
 # Web root = this script's folder. Pages reference images via
 # ../../../_resources/... which resolves against this root.
 ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# ------------------------------------------------------------------ config ---
+# Everything is configured in config.json (next to this script). The values
+# below are the built-in defaults used when config.json is missing a key, so
+# the site still runs with no config file at all.
+DEFAULTS = {
+    "site_title": "BeWordSmith",     # sidebar brand + browser tab title
+    "site_subtitle": "Docs & guides",  # small line under the brand
+    "content_dir": "content",        # folder (next to this script) holding your Markdown
+    "page_word": "page",             # noun used for the per-section counts ("3 pages")
+    "port": 8000,                    # default port (a CLI arg still overrides it)
+}
+
+
+def load_config():
+    cfg = dict(DEFAULTS)
+    path = os.path.join(ROOT, "config.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            user = json.load(f)
+        cfg.update({k: v for k, v in user.items() if k in DEFAULTS})
+    except FileNotFoundError:
+        pass
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"⚠ config.json ignored ({exc}); using defaults", file=sys.stderr)
+    return cfg
+
+
+CONFIG = load_config()
+SITE_TITLE = CONFIG["site_title"]
+SITE_SUBTITLE = CONFIG["site_subtitle"]
+CONTENT_DIR = CONFIG["content_dir"]
+PAGE_WORD = CONFIG["page_word"]
+# -----------------------------------------------------------------------------
 
 _num_re = re.compile(r"(\d+)")
 # Optional ordering prefix on a folder/file name: "1. ", "02) ", "3 - ", "4_".
@@ -714,7 +741,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else int(CONFIG["port"])
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"{SITE_TITLE} → http://localhost:{port}/")
     print(f"Serving from: {ROOT}")

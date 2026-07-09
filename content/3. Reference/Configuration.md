@@ -1,13 +1,26 @@
 # Configuration
 
-All settings live in the config block at the top of `server.py`.
+All settings live in a single **`config.json`** file next to `server.py`:
 
-| Setting | Default | What it does |
+```json
+{
+  "site_title": "BeWordSmith",
+  "site_subtitle": "Docs & guides",
+  "content_dir": "content",
+  "page_word": "page",
+  "port": 8000
+}
+```
+
+| Key | Default | What it does |
 | --- | --- | --- |
-| `SITE_TITLE` | `BeWordsmith` | Sidebar brand and browser tab title |
-| `SITE_SUBTITLE` | `Docs & guides` | Small line under the brand |
-| `CONTENT_DIR` | `content` | Folder holding your Markdown |
-| `PAGE_WORD` | `page` | Noun used in the menu counts |
+| `site_title` | `BeWordSmith` | Sidebar brand and browser tab title |
+| `site_subtitle` | `Docs & guides` | Small line under the brand |
+| `content_dir` | `content` | Folder holding your Markdown |
+| `page_word` | `page` | Noun used in the menu counts |
+| `port` | `8000` | Port to serve on (a CLI arg like `server.py 8137` overrides it) |
+
+Any key you omit falls back to its built-in default, so a partial (or missing) `config.json` still works.
 
 ## Theming
 

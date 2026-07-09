@@ -1,0 +1,7 @@
+{
+  "site_title": "BeWordSmith",
+  "site_subtitle": "Docs & guides",
+  "content_dir": "content",
+  "page_word": "page",
+  "port": 8000
+}

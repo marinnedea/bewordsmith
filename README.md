@@ -18,14 +18,28 @@ python3 server.py 8137       # custom port
 ## Structure
 
 ```
+config.json   all settings (title, subtitle, content dir, page word, port)
 _app/         vendored marked.js + highlight.js + code theme
 _resources/   images (referenced from pages as ../../../_resources/…)
 content/      your Markdown — folders become Section → Group → Page
-server.py     the whole app (config block at the top)
+server.py     the whole app
 ```
 
 ## Customize
 
-Edit the config block at the top of `server.py` (`SITE_TITLE`, `SITE_SUBTITLE`,
-`CONTENT_DIR`, `PAGE_WORD`). Change the `--accent` CSS variable to re-skin.
-Open the in-app **Authoring guide** (bottom of the sidebar) for formatting help.
+Edit `config.json`:
+
+```json
+{
+  "site_title": "BeWordSmith",
+  "site_subtitle": "Docs & guides",
+  "content_dir": "content",
+  "page_word": "page",
+  "port": 8000
+}
+```
+
+A port passed on the command line (`python3 server.py 8137`) overrides
+`config.json`. To re-skin, change the `--accent` CSS variable near the top of
+the shell styles in `server.py`. Open the in-app **Authoring guide** (bottom of
+the sidebar) for formatting help.
