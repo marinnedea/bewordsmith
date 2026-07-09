@@ -39,6 +39,7 @@ DEFAULTS = {
     "content_dir": "content",        # folder (next to this script) holding your Markdown
     "page_word": "page",             # noun used for the per-section counts ("3 pages")
     "port": 8000,                    # default port (a CLI arg still overrides it)
+    "menu": {},                      # optional per-path label/order overrides (see below)
 }
 
 
@@ -61,12 +62,17 @@ SITE_TITLE = CONFIG["site_title"]
 SITE_SUBTITLE = CONFIG["site_subtitle"]
 CONTENT_DIR = CONFIG["content_dir"]
 PAGE_WORD = CONFIG["page_word"]
+# Optional menu overrides: { "content/2. Guides": {"label": "User Guides", "order": 5}, ... }
+# keyed by the item's path (relative to this script, forward slashes). Both
+# fields optional; anything omitted falls back to prefix/natural-sort behavior.
+MENU = CONFIG["menu"] if isinstance(CONFIG.get("menu"), dict) else {}
 # -----------------------------------------------------------------------------
 
 _num_re = re.compile(r"(\d+)")
 # Optional ordering prefix on a folder/file name: "1. ", "02) ", "3 - ", "4_".
 # It controls sort order (via natural_key) and is hidden from the menu label.
 _order_prefix_re = re.compile(r"^\s*\d+\s*[.)_-]\s*")
+_prefix_num_re = re.compile(r"^\s*(\d+)\s*[.)_-]")
 
 
 def natural_key(name):
@@ -84,6 +90,33 @@ def display_name(name):
 def clean_title(filename):
     base = re.sub(r"\.md$", "", filename, flags=re.IGNORECASE)
     return display_name(base)
+
+
+def _prefix_order(name):
+    m = _prefix_num_re.match(name)
+    return int(m.group(1)) if m else None
+
+
+def sort_key(name, path):
+    """Order by (explicit JSON order → numeric prefix → nothing). Items with an
+    order come first (by that number); the rest sort naturally by name."""
+    order = (MENU.get(path) or {}).get("order")
+    if order is None:
+        order = _prefix_order(name)
+    try:
+        order = None if order is None else float(order)
+    except (TypeError, ValueError):
+        order = None
+    nk = natural_key(display_name(name))
+    return (0, order, nk) if order is not None else (1, nk)
+
+
+def label_for(name, path, is_file):
+    """Custom label from config wins; else the cleaned name."""
+    lbl = (MENU.get(path) or {}).get("label")
+    if lbl:
+        return lbl
+    return clean_title(name) if is_file else display_name(name)
 
 
 def list_md(path):
@@ -118,25 +151,29 @@ def build_tree():
     Groups; the .md files are Pages. A .md placed directly in a Section folder
     is a section-level page."""
     base = os.path.join(ROOT, CONTENT_DIR)
+
+    def pages_in(dir_path, path_prefix):
+        files = list_md(dir_path)
+        files.sort(key=lambda f: sort_key(f, f"{path_prefix}/{f}"))
+        return [{"title": label_for(f, f"{path_prefix}/{f}", True),
+                 "path": f"{path_prefix}/{f}", "type": "md"} for f in files]
+
     tree = {"sections": []}
-    for section in list_dirs(base):
+    sections = list_dirs(base)
+    sections.sort(key=lambda d: sort_key(d, f"{CONTENT_DIR}/{d}"))
+    for section in sections:
         section_path = os.path.join(base, section)
-        node = {"title": display_name(section), "pages": [], "groups": []}
-        for f in list_md(section_path):
-            node["pages"].append(
-                {"title": clean_title(f),
-                 "path": f"{CONTENT_DIR}/{section}/{f}", "type": "md"}
-            )
-        for group in list_dirs(section_path):
-            group_path = os.path.join(section_path, group)
-            g_node = {"title": display_name(group), "pages": []}
-            for f in list_md(group_path):
-                g_node["pages"].append(
-                    {"title": clean_title(f),
-                     "path": f"{CONTENT_DIR}/{section}/{group}/{f}", "type": "md"}
-                )
-            if g_node["pages"]:
-                node["groups"].append(g_node)
+        s_prefix = f"{CONTENT_DIR}/{section}"
+        node = {"title": label_for(section, s_prefix, False),
+                "pages": pages_in(section_path, s_prefix), "groups": []}
+        groups = list_dirs(section_path)
+        groups.sort(key=lambda d: sort_key(d, f"{s_prefix}/{d}"))
+        for group in groups:
+            g_prefix = f"{s_prefix}/{group}"
+            g_pages = pages_in(os.path.join(section_path, group), g_prefix)
+            if g_pages:
+                node["groups"].append(
+                    {"title": label_for(group, g_prefix, False), "pages": g_pages})
         if node["pages"] or node["groups"]:
             tree["sections"].append(node)
     return tree

@@ -28,6 +28,8 @@ wiki-template/
 
 **Order:** names are sorted naturally (`Page 2` before `Page 10`). To force a specific order, prefix a folder or file name with a number — `1. Introduction`, `2. Setup`. The number sets the order and is **hidden from the menu label**, so the sidebar still reads cleanly.
 
+**Custom labels / order without renaming:** add a `menu` block to `config.json` mapping a path to `{ "label": …, "order": … }`. Handy when you want the menu to show a different name than the file, or to reorder without touching the folders. See **Reference → Configuration** for details.
+
 ## The title bar (hero) is built for you
 
 | Hero part | Comes from |
