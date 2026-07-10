@@ -6,6 +6,11 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- **Search is now a command-palette modal** — open it with ⌘K / Ctrl-K, `/`, or
+  by clicking the search box. Full-width results with snippets, arrow-key
+  navigation and Enter to open; replaces the in-sidebar results list.
+
 ### Added
 - Optional **`github_repo`** config → live version display. Elements marked
   `data-bws-version` show the latest GitHub release tag, and `data-bws-release`

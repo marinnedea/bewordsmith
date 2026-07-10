@@ -105,17 +105,30 @@
     background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 1px 7px; }
   .hidden { display: none !important; }
 
-  /* Full-text search results (client-side) */
-  #results { flex: 1 1 auto; overflow-y: auto; padding: 8px 4px 24px; }
-  #results::-webkit-scrollbar { width: 9px; }
-  #results::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 5px; border: 2px solid var(--bg); }
-  .sr { display: block; padding: 9px 12px; margin: 2px 8px; border-radius: 8px; cursor: pointer; }
-  .sr:hover { background: var(--bg-hover); }
-  .sr-crumb { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
-  .sr-title { color: var(--text); font-size: 13px; font-weight: 600; line-height: 1.3; }
-  .sr-snip { color: var(--muted); font-size: 12px; line-height: 1.45; margin-top: 4px; }
-  .sr mark { background: var(--accent-soft); color: var(--accent-hi); padding: 0 1px; border-radius: 2px; }
-  .sr-status, .sr-empty { color: var(--text-dim); font-size: 12.5px; padding: 14px 16px; }
+  /* Full-text search — command-palette modal */
+  #search { cursor: pointer; }
+  #search-modal { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.6);
+    display: flex; align-items: flex-start; justify-content: center; padding: 10vh 16px 16px; }
+  #search-modal.hidden { display: none; }
+  .sm-panel { width: 100%; max-width: 640px; max-height: 72vh; display: flex; flex-direction: column;
+    background: var(--bg-elev); border: 1px solid var(--border-2); border-radius: 14px;
+    box-shadow: 0 30px 90px rgba(0,0,0,.6); overflow: hidden; }
+  #sm-input { border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text);
+    font-size: 16px; padding: 16px 18px; outline: none; }
+  #sm-input::placeholder { color: var(--text-dim); }
+  #sm-results { overflow-y: auto; padding: 6px; }
+  #sm-results::-webkit-scrollbar { width: 9px; }
+  #sm-results::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 5px; border: 2px solid var(--bg-elev); }
+  .sm-item { display: block; padding: 10px 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+  .sm-item.active { background: var(--bg-active); border-color: rgba(var(--accent-rgb),.35); }
+  .sm-crumb { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+  .sm-title { color: var(--text); font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .sm-snip { color: var(--muted); font-size: 12.5px; line-height: 1.45; margin-top: 4px; }
+  .sm-item mark { background: var(--accent-soft); color: var(--accent-hi); padding: 0 1px; border-radius: 2px; }
+  .sm-empty { color: var(--text-dim); padding: 26px; text-align: center; font-size: 13px; }
+  .sm-hint { display: flex; gap: 16px; padding: 8px 15px; border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 11px; flex: 0 0 auto; }
+  .sm-hint kbd { border: 1px solid var(--border-2); border-radius: 4px; padding: 0 5px; margin-right: 3px; background: var(--bg); }
 
   /* Footer help entry — separated from the main menu */
   #sidebar-foot { flex: 0 0 auto; border-top: 1px solid var(--border); padding: 10px 12px; background: var(--bg); }
@@ -299,10 +312,9 @@
       </div>
     </div>
     <div id="search-wrap">
-      <input id="search" type="text" placeholder="Search…" autocomplete="off">
+      <input id="search" type="text" placeholder="Search…" autocomplete="off" readonly>
     </div>
     <nav id="nav"></nav>
-    <div id="results" class="hidden"></div>
     <div id="sidebar-foot">
       <div class="foot-link" id="help-link">
         <span class="fi">✎</span>
@@ -312,6 +324,13 @@
   </aside>
 
   <div id="backdrop"></div>
+  <div id="search-modal" class="hidden" role="dialog" aria-modal="true">
+    <div class="sm-panel">
+      <input id="sm-input" type="text" placeholder="Search pages…" autocomplete="off" spellcheck="false">
+      <div id="sm-results"></div>
+      <div class="sm-hint"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
+    </div>
+  </div>
   <div id="main">
     <div id="topbar">
       <button id="menu-toggle" title="Menu" aria-label="Toggle menu">☰</button>
@@ -595,11 +614,14 @@ function render(tree) {
   if (home) loadNote(home);
 }
 
-// ---- Full-text search (client-side, zero dependency, works on both backends) ----
-const navEl   = document.getElementById('nav');
-const results = document.getElementById('results');
+// ---- Full-text search — command-palette modal (client-side, zero deps) ----
+const searchModal = document.getElementById('search-modal');
+const smInput = document.getElementById('sm-input');
+const smResults = document.getElementById('sm-results');
 let searchIndex = null;      // [{entry, text}]
 let indexing = false;
+let smHits = [];             // current results  [{row,inTitle}]
+let smActive = -1;
 
 function stripMarkdown(md) {
   return md
@@ -632,54 +654,84 @@ async function buildSearchIndex() {
     return { entry, text: stripMarkdown(raw) };
   }));
   indexing = false;
-  const q = document.getElementById('search').value.trim();
-  if (q) renderResults(q);          // refresh if user searched before it was ready
+  if (isSearchOpen() && smInput.value.trim()) renderResults(smInput.value.trim());
 }
 
-function showTree()    { results.classList.add('hidden'); navEl.classList.remove('hidden'); }
-function showResults() { navEl.classList.add('hidden'); results.classList.remove('hidden'); }
+function isSearchOpen() { return !searchModal.classList.contains('hidden'); }
+function openSearch() {
+  document.body.classList.remove('nav-open');
+  searchModal.classList.remove('hidden');
+  smInput.value = ''; smResults.innerHTML = ''; smHits = []; smActive = -1;
+  buildSearchIndex();
+  setTimeout(() => smInput.focus(), 0);
+}
+function closeSearch() { searchModal.classList.add('hidden'); }
+
+function setActiveHit(i) {
+  const items = [...smResults.querySelectorAll('.sm-item')];
+  if (!items.length) return;
+  smActive = (i + items.length) % items.length;
+  items.forEach((el, j) => el.classList.toggle('active', j === smActive));
+  items[smActive].scrollIntoView({ block: 'nearest' });
+}
 
 function renderResults(q) {
-  const ql = q.toLowerCase();
-  if (!searchIndex) { results.innerHTML = '<div class="sr-status">Indexing pages…</div>'; showResults(); buildSearchIndex(); return; }
-  const hits = searchIndex
+  const ql = q.toLowerCase().trim();
+  smHits = []; smActive = -1;
+  if (!ql) { smResults.innerHTML = ''; return; }
+  if (!searchIndex) { smResults.innerHTML = '<div class="sm-empty">Indexing pages…</div>'; buildSearchIndex(); return; }
+  smHits = searchIndex
     .map(row => {
       const inTitle = row.entry.title.toLowerCase().includes(ql);
       const inBody  = row.text.toLowerCase().includes(ql);
       return (inTitle || inBody) ? { row, inTitle } : null;
     })
     .filter(Boolean)
-    .sort((a, b) => (b.inTitle - a.inTitle));
-  if (!hits.length) { results.innerHTML = '<div class="sr-empty">No matches for “' + escHtml(q) + '”.</div>'; showResults(); return; }
-  results.innerHTML = '';
-  hits.slice(0, 50).forEach(({ row }) => {
+    .sort((a, b) => (b.inTitle - a.inTitle))
+    .slice(0, 50);
+  if (!smHits.length) { smResults.innerHTML = '<div class="sm-empty">No matches for “' + escHtml(q) + '”.</div>'; return; }
+  smResults.innerHTML = '';
+  smHits.forEach(({ row }, i) => {
     const ancestors = row.entry.crumb.split('  ›  ').slice(0, -1).join(' › ');
     const snip = snippet(row.text, q);
     const el = document.createElement('div');
-    el.className = 'sr';
+    el.className = 'sm-item'; el.dataset.i = i;
     el.innerHTML =
-      (ancestors ? '<div class="sr-crumb">' + escHtml(ancestors) + '</div>' : '') +
-      '<div class="sr-title">' + highlight(row.entry.title, q) + '</div>' +
-      (snip ? '<div class="sr-snip">' + snip + '</div>' : '');
-    el.onclick = () => loadNote(row.entry);
-    results.appendChild(el);
+      (ancestors ? '<div class="sm-crumb">' + escHtml(ancestors) + '</div>' : '') +
+      '<div class="sm-title">' + highlight(row.entry.title, q) + '</div>' +
+      (snip ? '<div class="sm-snip">' + snip + '</div>' : '');
+    el.onmouseenter = () => setActiveHit(i);
+    el.onclick = () => { loadNote(row.entry); closeSearch(); };
+    smResults.appendChild(el);
   });
-  showResults();
+  setActiveHit(0);
 }
 
-document.getElementById('search').addEventListener('input', (e) => {
-  const q = e.target.value.trim();
-  if (!q) { showTree(); return; }
-  renderResults(q);
+smInput.addEventListener('input', () => renderResults(smInput.value));
+smInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setActiveHit(smActive + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveHit(smActive - 1); }
+  else if (e.key === 'Enter') { e.preventDefault(); const h = smHits[smActive] || smHits[0]; if (h) { loadNote(h.row.entry); closeSearch(); } }
+  else if (e.key === 'Escape') { closeSearch(); }
+});
+// Triggers: click the sidebar box, or ⌘K / Ctrl-K / "/".
+const sidebarSearch = document.getElementById('search');
+sidebarSearch.addEventListener('focus', openSearch);
+sidebarSearch.addEventListener('click', openSearch);
+searchModal.addEventListener('click', (e) => { if (e.target === searchModal) closeSearch(); });
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); openSearch(); }
+  else if (e.key === '/' && !isSearchOpen() && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+  else if (e.key === 'Escape' && isSearchOpen()) { closeSearch(); }
 });
 
 // Mobile drawer: hamburger toggles the sidebar; backdrop closes it.
 document.getElementById('menu-toggle').addEventListener('click', () => document.body.classList.toggle('nav-open'));
 document.getElementById('backdrop').addEventListener('click', () => document.body.classList.remove('nav-open'));
 
-// keyboard: left/right arrows navigate when not typing in the filter
+// keyboard: left/right arrows navigate (but not while typing or searching)
 document.addEventListener('keydown', (e) => {
-  if (document.activeElement === document.getElementById('search')) return;
+  if (isSearchOpen() || /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
   if (e.key === 'ArrowLeft') go(-1);
   if (e.key === 'ArrowRight') go(1);
 });
