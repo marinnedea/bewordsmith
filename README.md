@@ -1,11 +1,15 @@
 # BeWordSmith
 
+[![Release](https://img.shields.io/github/v/release/marinnedea/bewordsmith?color=FF671D&label=release)](https://github.com/marinnedea/bewordsmith/releases/latest)
+[![Live demo](https://img.shields.io/badge/live%20demo-bewordsmith.com-FF671D)](https://bewordsmith.com)
+
 A tiny, dependency-free knowledge-base / how-to site. Serves a folder of
 Markdown files as a dark-themed site with an auto-generated left menu and a
 gradient hero header on every page. marked.js + highlight.js are vendored
 locally (works offline).
 
 **🔗 Live demo:** [bewordsmith.com](https://bewordsmith.com) — the site there is itself built with BeWordSmith.
+**⬇ Download:** grab the [latest release](https://github.com/marinnedea/bewordsmith/releases/latest), or clone `main` (below).
 
 Order sections/pages by prefixing folder or file names with a number
 (`1. Intro`, `2. Setup`); the number sets the order and is hidden from the menu label.
