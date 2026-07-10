@@ -120,7 +120,9 @@
   #sidebar-foot { flex: 0 0 auto; border-top: 1px solid var(--border); padding: 10px 12px; background: var(--bg); }
   .foot-link { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px;
     font-size: 12.5px; color: var(--muted); cursor: pointer; border: 1px solid var(--border);
-    background: var(--bg-elev); transition: color .12s, border-color .12s, background .12s; }
+    background: var(--bg-elev); text-decoration: none;
+    transition: color .12s, border-color .12s, background .12s; }
+  #sidebar-foot .foot-link + .foot-link { margin-top: 8px; }
   .foot-link .fi { font-size: 14px; color: var(--accent); flex: 0 0 auto; }
   .foot-link:hover { color: var(--text); border-color: rgba(var(--accent-rgb),.4); background: var(--accent-soft); }
   .foot-link.active { color: var(--accent-hi); border-color: rgba(var(--accent-rgb),.5); background: var(--bg-active); }
@@ -390,6 +392,16 @@ const helpEntry = {
   leaf: document.getElementById('help-link'),
 };
 document.getElementById('help-link').onclick = () => loadNote(helpEntry);
+
+// Optional "Buy me a coffee" footer link — shown only if donate_url is set in config.
+const DONATE_URL = "__DONATE_URL__";
+if (DONATE_URL) {
+  const c = document.createElement('a');
+  c.className = 'foot-link';
+  c.href = DONATE_URL; c.target = '_blank'; c.rel = 'noopener';
+  c.innerHTML = '<span class="fi">☕</span><span>Buy me a coffee</span>';
+  document.getElementById('sidebar-foot').appendChild(c);
+}
 
 async function loadNote(entry) {
   const url = encPath(entry.path);

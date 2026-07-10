@@ -12,7 +12,8 @@ All settings live in a single **`config.json`** file next to `server.py`:
   "port": 8000,
   "base_path": "",
   "accent": "#FF671D",
-  "home": ""
+  "home": "",
+  "donate_url": ""
 }
 ```
 
@@ -27,6 +28,7 @@ All settings live in a single **`config.json`** file next to `server.py`:
 | `base_path` | `""` | Mount under a sub-path (see below) |
 | `accent` | `#FF671D` | Theme color (hex). Re-skins the whole UI |
 | `home` | `""` | Default landing page — a page path or title; blank = auto |
+| `donate_url` | `""` | Optional "Buy me a coffee" link in the sidebar footer; blank = hidden |
 
 Any key you omit falls back to its built-in default, so a partial (or missing) `config.json` still works.
 

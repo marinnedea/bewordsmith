@@ -22,6 +22,7 @@ $DEFAULTS = [
     "page_word"     => "page",
     "accent"        => "#FF671D",
     "home"          => "",
+    "donate_url"    => "",
     "menu"          => [],
 ];
 $cfg = $DEFAULTS;
@@ -138,6 +139,7 @@ $repl = [
     "__SITE_TITLE__"    => $cfg["site_title"],
     "__SITE_SUBTITLE__" => $cfg["site_subtitle"],
     "__PAGE_WORD__"     => $cfg["page_word"],
+    "__DONATE_URL__"    => str_replace('"', '', (string)($cfg["donate_url"] ?? "")),
     "__HOME__"          => str_replace('"', '\\"', (string)$cfg["home"]),
     "__ACCENT_RGB__"    => $ac["rgb"],
     "__ACCENT_HI__"     => $ac["hi"],
