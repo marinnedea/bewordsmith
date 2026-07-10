@@ -410,13 +410,25 @@ const helpEntry = {
 };
 document.getElementById('help-link').onclick = () => loadNote(helpEntry);
 
-// Optional "Buy me a coffee" footer link — shown only if donate_url is set in config.
+// Optional "Buy me a coffee" footer link — shown only if donate_url is set.
+// donate_url may be an external URL (opens in a new tab) OR an internal page
+// path/title (opens that page — handy for a support page with a QR code).
 const DONATE_URL = "__DONATE_URL__";
 if (DONATE_URL) {
   const c = document.createElement('a');
   c.className = 'foot-link';
-  c.href = DONATE_URL; c.target = '_blank'; c.rel = 'noopener';
   c.innerHTML = '<span class="fi">☕</span><span>Buy me a coffee</span>';
+  if (/^https?:/i.test(DONATE_URL)) {
+    c.href = DONATE_URL; c.target = '_blank'; c.rel = 'noopener';
+  } else {
+    c.href = '#';
+    c.onclick = (e) => {
+      e.preventDefault();
+      const t = DONATE_URL.toLowerCase();
+      const entry = flatOrder.find(x => x.path.toLowerCase() === t || x.title.toLowerCase() === t);
+      if (entry) loadNote(entry);
+    };
+  }
   document.getElementById('sidebar-foot').appendChild(c);
 }
 
