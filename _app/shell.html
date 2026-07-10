@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__SITE_TITLE__</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='%23FF671D'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="__ASSET__/_app/github-dark.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -139,6 +140,8 @@
     border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
   #topbar button:hover { color: var(--text); border-color: var(--accent); }
   #prev-next { display: flex; gap: 6px; }
+  #menu-toggle { display: none; font-size: 16px; line-height: 1; padding: 4px 10px; }
+  #backdrop { display: none; position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.55); }
 
   #scroll { flex: 1 1 auto; overflow-y: auto; }
   #content { width: 100%; }
@@ -164,6 +167,18 @@
     .hero { padding: 34px 22px 26px; }
     .md-wrap { padding: 22px 22px 100px; }
     .hero-title { font-size: clamp(22px, 6vw, 34px); }
+  }
+  /* Phones: sidebar becomes a slide-in drawer behind a hamburger. */
+  @media (max-width: 760px) {
+    #menu-toggle { display: inline-block; }
+    #sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
+      width: 84%; max-width: 320px; min-width: 0; transform: translateX(-100%);
+      transition: transform .22s ease; box-shadow: 0 0 40px rgba(0,0,0,.6); }
+    body.nav-open #sidebar { transform: translateX(0); }
+    body.nav-open #backdrop { display: block; }
+    #main { width: 100%; }
+    .hero { padding: 26px 18px 22px; }
+    .md-wrap { padding: 18px 18px 90px; }
   }
 
   /* Full-bleed embedded HTML pages (cloned standalone pages). */
@@ -296,8 +311,10 @@
     </div>
   </aside>
 
+  <div id="backdrop"></div>
   <div id="main">
     <div id="topbar">
+      <button id="menu-toggle" title="Menu" aria-label="Toggle menu">☰</button>
       <span id="crumb">Select a page</span>
       <span class="spacer"></span>
       <div id="prev-next">
@@ -405,6 +422,7 @@ if (DONATE_URL) {
 
 async function loadNote(entry) {
   const url = encPath(entry.path);
+  document.body.classList.remove('nav-open');   // close the mobile drawer on selection
   crumb.textContent = entry.crumb;
   document.title = entry.title + ' — __SITE_TITLE__';
 
@@ -608,6 +626,10 @@ document.getElementById('search').addEventListener('input', (e) => {
   if (!q) { showTree(); return; }
   renderResults(q);
 });
+
+// Mobile drawer: hamburger toggles the sidebar; backdrop closes it.
+document.getElementById('menu-toggle').addEventListener('click', () => document.body.classList.toggle('nav-open'));
+document.getElementById('backdrop').addEventListener('click', () => document.body.classList.remove('nav-open'));
 
 // keyboard: left/right arrows navigate when not typing in the filter
 document.addEventListener('keydown', (e) => {

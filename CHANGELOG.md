@@ -9,6 +9,8 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 ### Added
 - Optional **`donate_url`** config — when set, shows a "☕ Buy me a coffee" link
   in the sidebar footer. Blank by default (hidden).
+- **Responsive mobile layout** — the sidebar becomes a slide-in drawer behind a
+  hamburger button on narrow screens; a favicon was added.
 
 ## [1.1.0] — 2026-07-10
 
