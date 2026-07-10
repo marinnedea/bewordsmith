@@ -5,6 +5,8 @@ Markdown files as a dark-themed site with an auto-generated left menu and a
 gradient hero header on every page. marked.js + highlight.js are vendored
 locally (works offline).
 
+**🔗 Live demo:** [bewordsmith.com](https://bewordsmith.com) — the site there is itself built with BeWordSmith.
+
 Order sections/pages by prefixing folder or file names with a number
 (`1. Intro`, `2. Setup`); the number sets the order and is hidden from the menu label.
 
