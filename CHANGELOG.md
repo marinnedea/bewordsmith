@@ -4,13 +4,15 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] — 2026-07-10
 
 ### Added
-- Optional **`donate_url`** config — when set, shows a "☕ Buy me a coffee" link
-  in the sidebar footer. Blank by default (hidden).
-- **Responsive mobile layout** — the sidebar becomes a slide-in drawer behind a
-  hamburger button on narrow screens; a favicon was added.
+- **Responsive mobile layout** — on narrow screens the sidebar becomes a
+  slide-in drawer behind a hamburger button (with a dimming backdrop that
+  closes on selection); plus a favicon.
+- Optional **`donate_url`** config — shows a "☕ Buy me a coffee" link in the
+  sidebar footer (hidden by default). It accepts an external URL *or* an
+  internal page path (e.g. a support page with a QR code).
 
 ## [1.1.0] — 2026-07-10
 
@@ -46,5 +48,6 @@ First public release.
 - **`base_path`** support for mounting under a sub-path behind a reverse proxy.
 - In-app **authoring guide** and a live demo at [bewordsmith.com](https://bewordsmith.com).
 
+[1.2.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.2.0
 [1.1.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.1.0
 [1.0.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.0.0
