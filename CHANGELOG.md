@@ -4,6 +4,15 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Optional **`github_repo`** config → live version display. Elements marked
+  `data-bws-version` show the latest GitHub release tag, and `data-bws-release`
+  links point to it — fetched from the GitHub API in the browser (cached per
+  session, with a graceful fallback). Publishing a release updates the site with
+  no redeploy.
+
 ## [1.2.0] — 2026-07-10
 
 ### Added

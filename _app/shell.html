@@ -391,6 +391,39 @@ let currentIdx = -1;
 
 const ASSET = "__ASSET__";
 const TREE_URL = "__TREE__";
+const GITHUB_REPO = "__GITHUB_REPO__";   // e.g. "owner/repo" — enables live version display
+
+// Fetch the latest GitHub release once per session (cached, graceful on failure).
+let _latestRelease;
+function getLatestRelease() {
+  if (!GITHUB_REPO) return Promise.resolve(null);
+  if (_latestRelease) return _latestRelease;
+  let cached = null;
+  try { cached = JSON.parse(sessionStorage.getItem('bws_release') || 'null'); } catch (e) {}
+  if (cached) { _latestRelease = Promise.resolve(cached); return _latestRelease; }
+  _latestRelease = fetch('https://api.github.com/repos/' + GITHUB_REPO + '/releases/latest')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d || !d.tag_name) return null;
+      const v = { tag: d.tag_name, url: d.html_url };
+      try { sessionStorage.setItem('bws_release', JSON.stringify(v)); } catch (e) {}
+      return v;
+    })
+    .catch(() => null);
+  return _latestRelease;
+}
+
+// Fill [data-bws-version] (text) and [data-bws-release] (href) with the latest
+// release. Fallback content stays put if the fetch fails. Only fetches if the
+// page actually uses the markers.
+function fillVersion(root) {
+  if (!root.querySelector('[data-bws-version], [data-bws-release]')) return;
+  getLatestRelease().then(v => {
+    if (!v) return;
+    root.querySelectorAll('[data-bws-version]').forEach(e => { e.textContent = v.tag; });
+    root.querySelectorAll('[data-bws-release]').forEach(e => { if (e.tagName === 'A') e.href = v.url; });
+  });
+}
 function encPath(p) { return ASSET + '/' + p.split('/').map(encodeURIComponent).join('/'); }
 
 function setActive(entry) {
@@ -484,6 +517,7 @@ async function loadNote(entry) {
   wrap.className = 'md-wrap';
   wrap.appendChild(div);
   content.appendChild(wrap);
+  fillVersion(div);
   scroll.scrollTop = 0;
   setActive(entry);
 }

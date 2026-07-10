@@ -29,6 +29,7 @@ All settings live in a single **`config.json`** file next to `server.py`:
 | `accent` | `#FF671D` | Theme color (hex). Re-skins the whole UI |
 | `home` | `""` | Default landing page — a page path or title; blank = auto |
 | `donate_url` | `""` | Optional "Buy me a coffee" footer link. An external URL opens in a new tab; a page path/title opens that page (e.g. a support page with a QR). Blank = hidden |
+| `github_repo` | `""` | `owner/repo` — enables live version display. Elements marked `data-bws-version` show the latest release tag; `data-bws-release` links point to it (fetched from the GitHub API in the browser). Blank = off |
 
 Any key you omit falls back to its built-in default, so a partial (or missing) `config.json` still works.
 

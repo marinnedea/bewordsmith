@@ -44,6 +44,7 @@ DEFAULTS = {
     "accent": "#FF671D",             # theme accent color (hex) — re-skins the whole UI
     "home": "",                      # default page: a path or title; blank = auto (intro/overview)
     "donate_url": "",                # optional "Buy me a coffee" footer link; blank = hidden
+    "github_repo": "",               # "owner/repo" — enables live version display from GitHub releases
     "menu": {},                      # optional per-path label/order overrides (see below)
 }
 
@@ -218,6 +219,7 @@ def _load_shell():
             .replace("__SITE_SUBTITLE__", SITE_SUBTITLE)
             .replace("__PAGE_WORD__", PAGE_WORD)
             .replace("__DONATE_URL__", str(CONFIG["donate_url"]).replace('"', ''))
+            .replace("__GITHUB_REPO__", str(CONFIG["github_repo"]).replace('"', ''))
             .replace("__HOME__", str(CONFIG["home"]).replace('"', '\"'))
             .replace("__ACCENT_RGB__", ACCENT_RGB)
             .replace("__ACCENT_HI__", ACCENT_HI)

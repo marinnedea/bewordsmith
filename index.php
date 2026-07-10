@@ -23,6 +23,7 @@ $DEFAULTS = [
     "accent"        => "#FF671D",
     "home"          => "",
     "donate_url"    => "",
+    "github_repo"   => "",
     "menu"          => [],
 ];
 $cfg = $DEFAULTS;
@@ -140,6 +141,7 @@ $repl = [
     "__SITE_SUBTITLE__" => $cfg["site_subtitle"],
     "__PAGE_WORD__"     => $cfg["page_word"],
     "__DONATE_URL__"    => str_replace('"', '', (string)($cfg["donate_url"] ?? "")),
+    "__GITHUB_REPO__"   => str_replace('"', '', (string)($cfg["github_repo"] ?? "")),
     "__HOME__"          => str_replace('"', '\\"', (string)$cfg["home"]),
     "__ACCENT_RGB__"    => $ac["rgb"],
     "__ACCENT_HI__"     => $ac["hi"],
