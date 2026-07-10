@@ -4,7 +4,7 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.3.0] — 2026-07-10
 
 ### Changed
 - **Search is now a command-palette modal** — open it with ⌘K / Ctrl-K, `/`, or
@@ -62,6 +62,7 @@ First public release.
 - **`base_path`** support for mounting under a sub-path behind a reverse proxy.
 - In-app **authoring guide** and a live demo at [bewordsmith.com](https://bewordsmith.com).
 
+[1.3.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.3.0
 [1.2.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.2.0
 [1.1.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.1.0
 [1.0.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.0.0
