@@ -4,6 +4,15 @@ All notable changes to **BeWordSmith** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-07-10
+
+### Added
+- **Client-side full-text search.** The sidebar box now searches page *content*
+  (not just titles): results show the page, its breadcrumb, and a snippet with
+  the match highlighted; clicking opens the page. Zero dependencies, no server
+  and no build — the index is fetched and built in the browser, so it works on
+  both the Python and PHP backends. Clearing the box restores the menu.
+
 ## [1.0.0] — 2026-07-10
 
 First public release.
@@ -29,4 +38,5 @@ First public release.
 - **`base_path`** support for mounting under a sub-path behind a reverse proxy.
 - In-app **authoring guide** and a live demo at [bewordsmith.com](https://bewordsmith.com).
 
+[1.1.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.1.0
 [1.0.0]: https://github.com/marinnedea/bewordsmith/releases/tag/v1.0.0
