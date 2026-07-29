@@ -787,7 +787,7 @@ content.addEventListener('click', (e) => {
   const btn = document.getElementById('theme-toggle');
   function applyTheme(light) {
     document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
-    btn.textContent = light ? '☀️' : '🌙';
+    btn.textContent = light ? '🌙' : '☀️';
     document.getElementById('hljs-theme').href = ASSET_BASE + '/_app/' + (light ? 'github.min.css' : 'github-dark.min.css');
   }
   const stored = localStorage.getItem('bws_theme');
